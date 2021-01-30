@@ -3,7 +3,7 @@
  *   Copyright  2020  Dirk Brosswick
  *   Email: dirk.brosswick@googlemail.com
  ****************************************************************************/
- 
+
 /*
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,140 +30,161 @@
 #include "hardware/json_psram_allocator.h"
 
 /* Utility function to convert numbers to directions */
-static void weather_wind_to_string( weather_forcast_t* container, int speed, int directionDegree);
+static void weather_wind_to_string(weather_forcast_t *container, int speed, int directionDegree);
 
-int weather_fetch_today( weather_config_t *weather_config, weather_forcast_t *weather_today ) {
-    char url[512]="";
+int weather_fetch_today(weather_config_t *weather_config, weather_forcast_t *weather_today)
+{
+    char url[512] = "";
     int httpcode = -1;
-    const char* weather_units_symbol = weather_config->imperial ? "F" : "C";
-    const char* weather_units_char = weather_config->imperial ? "imperial" : "metric";
-    
-    snprintf( url, sizeof( url ), "http://%s/data/2.5/weather?lat=%s&lon=%s&appid=%s&units=%s", OWM_HOST, weather_config->lat, weather_config->lon, weather_config->apikey, weather_units_char);
+    const char *weather_units_symbol = weather_config->imperial ? "F" : "C";
+    const char *weather_units_char = weather_config->imperial ? "imperial" : "metric";
+    const char *weather_apikey = /* weather_config->apikey ? weather_config->apikey : */ "89976d570a146094a4bc147fe540783d"; // Hardcoded for hutch120 API Account https://home.openweathermap.org/api_keys
+    const char *weather_lat = /*weather_config->lat ? weather_config->lat : */ "-37.730081";                                 // Hardcoded for Preston, Melbourne, Victoria
+    const char *weather_lon = /*weather_config->lon ? weather_config->lon : */ "145.010901";                                 // Hardcoded for Preston, Melbourne, Victoria
+
+    snprintf(url, sizeof(url), "http://%s/data/2.5/weather?lat=%s&lon=%s&appid=%s&units=%s", OWM_HOST, weather_lat, weather_lon, weather_apikey, weather_units_char);
+
+    // log_i("weather today url: %s", url);
 
     HTTPClient today_client;
 
-    today_client.useHTTP10( true );
-    today_client.begin( url );
+    today_client.useHTTP10(true);
+    today_client.begin(url);
     httpcode = today_client.GET();
 
-    if ( httpcode != 200 ) {
-        log_e("HTTPClient error %d", httpcode, url );
+    if (httpcode != 200)
+    {
+        log_e("HTTPClient error %d, %s", httpcode, url);
         today_client.end();
-        return( -1 );
+        return (-1);
     }
 
-    SpiRamJsonDocument doc( today_client.getSize() * 2 );
+    SpiRamJsonDocument doc(today_client.getSize() * 2);
 
-    DeserializationError error = deserializeJson( doc, today_client.getStream() );
-    if (error) {
-        log_e("weather today deserializeJson() failed: %s", error.c_str() );
+    DeserializationError error = deserializeJson(doc, today_client.getStream());
+    if (error)
+    {
+        log_e("weather today deserializeJson() failed: %s", error.c_str());
         doc.clear();
         today_client.end();
-        return( -1 );
+        return (-1);
     }
 
     today_client.end();
 
     weather_today->valide = true;
-    snprintf( weather_today->temp, sizeof( weather_today->temp ), "%0.1f°%s", doc["main"]["temp"].as<float>(), weather_units_symbol);
-    snprintf( weather_today->humidity, sizeof( weather_today->humidity ),"%f%%", doc["main"]["humidity"].as<float>() );
-    snprintf( weather_today->pressure, sizeof( weather_today->pressure ),"%fpha", doc["main"]["pressure"].as<float>() );
-    strcpy( weather_today->icon, doc["weather"][0]["icon"] );
-    strcpy( weather_today->name, doc["name"] );
+    snprintf(weather_today->temp, sizeof(weather_today->temp), "%0.1f°%s", doc["main"]["temp"].as<float>(), weather_units_symbol);
+    snprintf(weather_today->humidity, sizeof(weather_today->humidity), "%f%%", doc["main"]["humidity"].as<float>());
+    snprintf(weather_today->pressure, sizeof(weather_today->pressure), "%fpha", doc["main"]["pressure"].as<float>());
+    strcpy(weather_today->icon, doc["weather"][0]["icon"]);
+    strcpy(weather_today->name, doc["name"]);
 
     int directionDegree = doc["wind"]["deg"].as<int>();
     int speed = doc["wind"]["speed"].as<int>();
-    weather_wind_to_string( weather_today, speed, directionDegree );
+    weather_today->speedMs = speed;
+    weather_today->speedKt = speed * 1.943844;
+    weather_wind_to_string(weather_today, weather_today->speedKt, directionDegree);
 
     doc.clear();
-    return( httpcode );
+    return (httpcode);
 }
 
-int weather_fetch_forecast( weather_config_t *weather_config, weather_forcast_t * weather_forecast ) {
-    char url[512]="";
+int weather_fetch_forecast(weather_config_t *weather_config, weather_forcast_t *weather_forecast)
+{
+    char url[512] = "";
     int httpcode = -1;
-    const char* weather_units_symbol = weather_config->imperial ? "F" : "C";
-    const char* weather_units_char = weather_config->imperial ? "imperial" : "metric";
+    const char *weather_units_symbol = weather_config->imperial ? "F" : "C";
+    const char *weather_units_char = weather_config->imperial ? "imperial" : "metric";
+    const char *weather_apikey = /* weather_config->apikey ? weather_config->apikey : */ "89976d570a146094a4bc147fe540783d"; // Hardcoded for hutch120 API Account https://home.openweathermap.org/api_keys
+    const char *weather_lat = /*weather_config->lat ? weather_config->lat : */ "-37.730081";                                 // Hardcoded for Preston, Melbourne, Victoria
+    const char *weather_lon = /*weather_config->lon ? weather_config->lon : */ "145.010901";                                 // Hardcoded for Preston, Melbourne, Victoria
 
-    snprintf( url, sizeof( url ), "http://%s/data/2.5/forecast?cnt=%d&lat=%s&lon=%s&appid=%s&units=%s", OWM_HOST, WEATHER_MAX_FORECAST, weather_config->lat, weather_config->lon, weather_config->apikey, weather_units_char);
+    snprintf(url, sizeof(url), "http://%s/data/2.5/forecast?cnt=%d&lat=%s&lon=%s&appid=%s&units=%s", OWM_HOST, WEATHER_MAX_FORECAST, weather_lat, weather_lon, weather_apikey, weather_units_char);
+
+    // log_i("weather forecast url: %s", url);
 
     HTTPClient forecast_client;
 
-    forecast_client.useHTTP10( true );
-    forecast_client.begin( url );
+    forecast_client.useHTTP10(true);
+    forecast_client.begin(url);
     httpcode = forecast_client.GET();
 
-    if ( httpcode != 200 ) {
-        log_e("HTTPClient error %d", httpcode, url );
+    if (httpcode != 200)
+    {
+        log_e("HTTPClient error %d, %s", httpcode, url);
         forecast_client.end();
-        return( -1 );
+        return (-1);
     }
 
-    SpiRamJsonDocument doc( forecast_client.getSize() * 2 );
+    SpiRamJsonDocument doc(forecast_client.getSize() * 2);
 
-    DeserializationError error = deserializeJson( doc, forecast_client.getStream() );
-    if (error) {
-        log_e("weather forecast deserializeJson() failed: %s", error.c_str() );
+    DeserializationError error = deserializeJson(doc, forecast_client.getStream());
+    if (error)
+    {
+        log_e("weather forecast deserializeJson() failed: %s", error.c_str());
         doc.clear();
         forecast_client.end();
-        return( -1 );
+        return (-1);
     }
 
     forecast_client.end();
 
     weather_forecast[0].valide = true;
-    for ( int i = 0 ; i < WEATHER_MAX_FORECAST ; i++ ) {
-        weather_forecast[ i ].timestamp = doc["list"][i]["dt"].as<long>() | 0;
-        snprintf( weather_forecast[ i ].temp, sizeof( weather_forecast[ i ].temp ),"%0.1f°%s", doc["list"][i]["main"]["temp"].as<float>(), weather_units_symbol );
-        snprintf( weather_forecast[ i ].humidity, sizeof( weather_forecast[ i ].humidity ),"%f%%", doc["list"][i]["main"]["humidity"].as<float>() );
-        snprintf( weather_forecast[ i ].pressure, sizeof( weather_forecast[ i ].pressure ),"%fpha", doc["list"][i]["main"]["pressure"].as<float>() );
-        strlcpy( weather_forecast[ i ].icon, doc["list"][i]["weather"][0]["icon"] | "n/a", sizeof(  weather_forecast[ i ].icon ) );
-        strlcpy( weather_forecast[ i ].name, doc["city"]["name"] | "n/a", sizeof( weather_forecast[ i ].name ) );
+    for (int i = 0; i < WEATHER_MAX_FORECAST; i++)
+    {
+        weather_forecast[i].timestamp = doc["list"][i]["dt"].as<long>() | 0;
+        snprintf(weather_forecast[i].temp, sizeof(weather_forecast[i].temp), "%0.1f°%s", doc["list"][i]["main"]["temp"].as<float>(), weather_units_symbol);
+        snprintf(weather_forecast[i].humidity, sizeof(weather_forecast[i].humidity), "%f%%", doc["list"][i]["main"]["humidity"].as<float>());
+        snprintf(weather_forecast[i].pressure, sizeof(weather_forecast[i].pressure), "%fpha", doc["list"][i]["main"]["pressure"].as<float>());
+        strlcpy(weather_forecast[i].icon, doc["list"][i]["weather"][0]["icon"] | "n/a", sizeof(weather_forecast[i].icon));
+        strlcpy(weather_forecast[i].name, doc["city"]["name"] | "n/a", sizeof(weather_forecast[i].name));
 
         int directionDegree = doc["list"][i]["wind"]["deg"].as<int>() | 0;
         int speed = doc["list"][i]["wind"]["speed"].as<int>() | 0;
-        weather_wind_to_string( &weather_forecast[i], speed, directionDegree );
+        weather_forecast[i].speedMs = speed;
+        weather_forecast[i].speedKt = speed * 1.943844;
+        weather_wind_to_string(&weather_forecast[i], weather_forecast[i].speedKt, directionDegree);
     }
 
     doc.clear();
-    return( httpcode );
+    return (httpcode);
 }
 
-void weather_wind_to_string( weather_forcast_t* container, int speed, int directionDegree )
+void weather_wind_to_string(weather_forcast_t *container, int speed, int directionDegree)
 {
     const char *dir = "N";
-    if ( directionDegree > 348 )
+    if (directionDegree > 348)
         ; // already set to "N"
-    else if ( directionDegree > 326 )
+    else if (directionDegree > 326)
         dir = "NNW";
-    else if ( directionDegree > 303 )
+    else if (directionDegree > 303)
         dir = "NW";
-    else if ( directionDegree > 281 )
+    else if (directionDegree > 281)
         dir = "WNW";
-    else if ( directionDegree > 258 )
+    else if (directionDegree > 258)
         dir = "W";
-    else if ( directionDegree > 236 )
+    else if (directionDegree > 236)
         dir = "WSW";
-    else if ( directionDegree > 213 )
+    else if (directionDegree > 213)
         dir = "SW";
-    else if ( directionDegree > 191 )
+    else if (directionDegree > 191)
         dir = "SSW";
-    else if ( directionDegree > 168 )
+    else if (directionDegree > 168)
         dir = "S";
-    else if ( directionDegree > 146 )
+    else if (directionDegree > 146)
         dir = "SSE";
-    else if ( directionDegree > 123 )
+    else if (directionDegree > 123)
         dir = "SE";
-    else if ( directionDegree > 101 )
+    else if (directionDegree > 101)
         dir = "ESE";
-    else if ( directionDegree > 78 )
+    else if (directionDegree > 78)
         dir = "E";
-    else if ( directionDegree > 56 )
+    else if (directionDegree > 56)
         dir = "ENE";
-    else if ( directionDegree > 33 )
+    else if (directionDegree > 33)
         dir = "NE";
-    else if ( directionDegree > 11 )
+    else if (directionDegree > 11)
         dir = "NNE";
-    snprintf( container->wind, sizeof(container->wind), "%d %s", speed, dir);
+    snprintf(container->wind, sizeof(container->wind), "%dkt %s", speed, dir);
     return;
 }

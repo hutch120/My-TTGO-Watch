@@ -5,7 +5,7 @@
     Copyright  2020  Dirk Brosswick
  *  Email: dirk.brosswick@googlemail.com
  ****************************************************************************/
- 
+
 /*
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,31 +21,32 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-#ifndef _CONFIG_H 
+#ifndef _CONFIG_H
 
-    #define LILYGO_WATCH_2020_V1             //To use T-Watch2020, please uncomment this line
-    #define LILYGO_WATCH_LVGL                //To use LVGL, you need to enable the macro LVGL
-    #define TWATCH_USE_PSRAM_ALLOC_LVGL
+#define LILYGO_WATCH_2020_V1 //To use T-Watch2020, please uncomment this line
+#define LILYGO_WATCH_LVGL    //To use LVGL, you need to enable the macro LVGL
+#define TWATCH_USE_PSRAM_ALLOC_LVGL
 
-    /*
+/*
     * Built-in applications
     */
-    #define ENABLE_WEBSERVER  // To disable built-in webserver, comment this line
-    #define ENABLE_FTPSERVER  // To disable built-in ftpserver, comment this line
+// #define ENABLE_WEBSERVER // To disable built-in webserver, comment this line
+// #define ENABLE_FTPSERVER // To disable built-in ftpserver, comment this line
+// #define ENABLE_ESPNOW    // To disable built-in esp_now, comment this line
 
-    /*
+/*
     * Enable non-latin languages support:
     */
-    #define USE_EXTENDED_CHARSET CHARSET_CYRILLIC
+#define USE_EXTENDED_CHARSET CHARSET_CYRILLIC
 
-    /*
+/*
     * firmeware version string
     */
-    #define __FIRMWARE__            "2021012701"
+#define __FIRMWARE__ "2021012701"
 
-    #ifdef __cplusplus // Allows to include config.h from C code
-        #include <LilyGoWatch.h>
-        #define _CONFIG_H 
-    #endif
+#ifdef __cplusplus // Allows to include config.h from C code
+#include <LilyGoWatch.h>
+#define _CONFIG_H
+#endif
 
 #endif // _CONFIG_H
