@@ -8,17 +8,19 @@
 #include "syncapp.h"
 #include <config.h>
 
-SynchronizedApplication::SynchronizedApplication() 
+SynchronizedApplication::SynchronizedApplication()
 {
     syncEvent = xEventGroupCreate();
 }
 
-Application& SynchronizedApplication::init(const char* name, const lv_img_dsc_t *iconImg, int userPageCount, int settingsPageCount) {
+Application &SynchronizedApplication::init(const char *name, const lv_img_dsc_t *iconImg, int userPageCount, int settingsPageCount)
+{
     this->init(name, iconImg, true, userPageCount, settingsPageCount);
     return *this;
 }
 
-SynchronizedApplication& SynchronizedApplication::init(const char* name, const lv_img_dsc_t *iconImg, bool addSyncButton, int userPageCount, int settingsPageCount) {
+SynchronizedApplication &SynchronizedApplication::init(const char *name, const lv_img_dsc_t *iconImg, bool addSyncButton, int userPageCount, int settingsPageCount)
+{
     Application::init(name, iconImg, userPageCount, settingsPageCount);
     title = name + String(" sync Task");
 
@@ -31,7 +33,8 @@ SynchronizedApplication& SynchronizedApplication::init(const char* name, const l
     return *this;
 }
 
-SynchronizedApplication& SynchronizedApplication::synchronizeActionHandler(SynchronizeAction onSynchronizeHandler) {
+SynchronizedApplication &SynchronizedApplication::synchronizeActionHandler(SynchronizeAction onSynchronizeHandler)
+{
     synchronize = onSynchronizeHandler;
     return *this;
 }
@@ -45,13 +48,13 @@ void SynchronizedApplication::startSynchronization(SyncRequestSource callSource)
     }
 
     xEventGroupSetBits(syncEvent, callSource);
-    auto result = xTaskCreate(&SynchronizedApplication::SyncTaskHandler,      /* Function to implement the task */
-                title.c_str(),    /* Name of the task */
-                5000,                            /* Stack size in words */
-                (void*)this,                            /* Task input parameter */
-                1,                               /* Priority of the task */
-                &syncTask );  /* Task handle. */
-    
+    auto result = xTaskCreate(&SynchronizedApplication::SyncTaskHandler, /* Function to implement the task */
+                              title.c_str(),                             /* Name of the task */
+                              5000,                                      /* Stack size in words */
+                              (void *)this,                              /* Task input parameter */
+                              1,                                         /* Priority of the task */
+                              &syncTask);                                /* Task handle. */
+
     if (result == pdPASS)
         log_d("%s scheduled", title.c_str());
     else if (result == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY)
@@ -60,30 +63,31 @@ void SynchronizedApplication::startSynchronization(SyncRequestSource callSource)
         log_e("No enough memory to start %s!", title.c_str());
     }
     else
-        while (true); // Not possible!!!
+        while (true)
+            ; // Not possible!!!
 }
 
-void SynchronizedApplication::onSyncRequest() {
+void SynchronizedApplication::onSyncRequest()
+{
     log_i("start %s, heap: %d", title.c_str(), ESP.getFreeHeap());
-
     vTaskDelay(250);
 
     auto flags = (SyncRequestSource)xEventGroupGetBits(syncEvent);
     if (flags & SyncRequestSource::IsRequired)
-    {   
+    {
         onStartSynchronization(flags);
         if (synchronize != nullptr)
             synchronize(flags);
     }
-    
+
     xEventGroupClearBits(syncEvent, SyncRequestSource::AllFlagsValues);
     log_i("finsh %s, heap: %d", title.c_str(), ESP.getFreeHeap());
-    vTaskDelete( NULL );
+    vTaskDelete(NULL);
 }
 
-void SynchronizedApplication::SyncTaskHandler(void* pvSelf)
+void SynchronizedApplication::SyncTaskHandler(void *pvSelf)
 {
     log_i("SyncTaskHandler: %d", pvSelf);
-    auto self = (SynchronizedApplication*)pvSelf;
+    auto self = (SynchronizedApplication *)pvSelf;
     self->onSyncRequest();
 }

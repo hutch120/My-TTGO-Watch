@@ -124,10 +124,7 @@ void setup()
 
     delay(500);
 
-    Serial.printf("Total heap: %d\r\n", ESP.getHeapSize());
-    Serial.printf("Free heap: %d\r\n", ESP.getFreeHeap());
-    Serial.printf("Total PSRAM: %d\r\n", ESP.getPsramSize());
-    Serial.printf("Free PSRAM: %d\r\n", ESP.getFreePsram());
+    Serial.printf("Setup: Heap: %d, PSRAM: %d, uptime: %d", ESP.getFreeHeap(), ESP.getFreePsram(), (int)(millis() / 1000));
 
     disableCore0WDT();
     callback_print();

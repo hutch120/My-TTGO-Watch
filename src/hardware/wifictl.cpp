@@ -38,6 +38,9 @@
 #ifdef ENABLE_FTPSERVER
 #include "ftpserver/ftpserver.h"
 #endif
+#ifdef ENABLE_ESPNOW
+#include "espnow/espnow.h"
+#endif
 
 bool wifi_init = false;
 EventGroupHandle_t wifictl_status = NULL;
@@ -167,10 +170,8 @@ void wifictl_setup(void)
     }
 #endif
 #ifdef ENABLE_ESPNOW
-    if (wifictl_config.ftpserver)
-    {
-      ftpserver_start(wifictl_config.ftpuser, wifictl_config.ftppass);
-    }
+    // if (wifictl_config.ftpserver) // Add UX option to turn on/off
+    espnow_start();
 #endif
   },
                WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
@@ -732,8 +733,7 @@ void wifictl_Task(void *pvParameters)
       ;
   }
 
-  log_i("start wifictl task, heap: %d", ESP.getFreeHeap());
-
+  log_i("start wifictl task: Heap: %d, PSRAM: %d, uptime: %d", ESP.getFreeHeap(), ESP.getFreePsram(), millis() / 1000);
   while (true)
   {
     vTaskDelay(500);

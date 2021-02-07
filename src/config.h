@@ -32,7 +32,8 @@
     */
 // #define ENABLE_WEBSERVER // To disable built-in webserver, comment this line
 // #define ENABLE_FTPSERVER // To disable built-in ftpserver, comment this line
-// #define ENABLE_ESPNOW    // To disable built-in esp_now, comment this line
+#define ENABLE_ESPNOW // To disable built-in esp_now, comment this line
+// #define ENABLE_BLUETOOTH    // To disable built-in esp_now, comment this line
 
 /*
     * Enable non-latin languages support:

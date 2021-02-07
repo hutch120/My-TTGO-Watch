@@ -38,7 +38,7 @@ int weather_fetch_today(weather_config_t *weather_config, weather_forcast_t *wea
     int httpcode = -1;
     const char *weather_units_symbol = weather_config->imperial ? "F" : "C";
     const char *weather_units_char = weather_config->imperial ? "imperial" : "metric";
-    const char *weather_apikey = /* weather_config->apikey ? weather_config->apikey : */ "89976d570a146094a4bc147fe540783d"; // Hardcoded for hutch120 API Account https://home.openweathermap.org/api_keys
+    const char *weather_apikey = /* weather_config->apikey ? weather_config->apikey : */ "f03b5366d6381eadb830b54f85785d97"; // Hardcoded for hutch120 API Account https://home.openweathermap.org/api_keys
     const char *weather_lat = /*weather_config->lat ? weather_config->lat : */ "-37.730081";                                 // Hardcoded for Preston, Melbourne, Victoria
     const char *weather_lon = /*weather_config->lon ? weather_config->lon : */ "145.010901";                                 // Hardcoded for Preston, Melbourne, Victoria
 
@@ -95,7 +95,7 @@ int weather_fetch_forecast(weather_config_t *weather_config, weather_forcast_t *
     int httpcode = -1;
     const char *weather_units_symbol = weather_config->imperial ? "F" : "C";
     const char *weather_units_char = weather_config->imperial ? "imperial" : "metric";
-    const char *weather_apikey = /* weather_config->apikey ? weather_config->apikey : */ "89976d570a146094a4bc147fe540783d"; // Hardcoded for hutch120 API Account https://home.openweathermap.org/api_keys
+    const char *weather_apikey = /* weather_config->apikey ? weather_config->apikey : */ "f03b5366d6381eadb830b54f85785d97"; // Hardcoded for hutch120 API Account https://home.openweathermap.org/api_keys
     const char *weather_lat = /*weather_config->lat ? weather_config->lat : */ "-37.730081";                                 // Hardcoded for Preston, Melbourne, Victoria
     const char *weather_lon = /*weather_config->lon ? weather_config->lon : */ "145.010901";                                 // Hardcoded for Preston, Melbourne, Victoria
 
